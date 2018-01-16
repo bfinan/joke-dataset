@@ -1,7 +1,7 @@
 import pandas
 import re
 import sys
-df = pandas.read_csv('jokes.csv')
+df = pandas.read_csv('split_tweet_jokes.csv')
 type_dict = eval(open("tags.py").read())
 
 outfile = "jokes_copy.csv"
@@ -47,4 +47,4 @@ if lightbulb:
             df.loc[df.index[idx], "meta"] = "type:tradlightbulb,"
 
 
-df.to_csv(outfile, encoding='utf-8', index=False)
+df.to_csv(outfile, encoding='utf-8', index=True)
