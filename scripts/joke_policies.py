@@ -1,30 +1,14 @@
 # INPUT: .csv file with Question/Answer jokes
 # OUTPUT: .csv file with various policies applied.
-import sys
 import pandas as pd
-import numpy as np
-from multiprocessing import Pool
+from jokeutils import *
 
-num_partitions = 10
-num_cores = 4
-
-if len(sys.argv) > 1:
-    infile = sys.argv[1]
-else:
-    print "Usage:   python joke_policies.py file1.csv"
-
-def parallelize_dataframe(dframe, func):
-    dframe_split = np.array_split(dframe, num_partitions)
-    pool = Pool(num_cores)
-    poolmap = pool.map(func, dframe_split)
-    dframe = pd.concat(poolmap)
-    pool.close()
-    pool.join()
-    return dframe
+with open('dicts/chars.txt', 'r') as chars:
+    validchars = chars.read()
 
 def processing(df):
     for i, row in enumerate(df.itertuples(),1):
-        print row.Index
+        print(row.Index)
         markForDrop = False
         
         # Questions will start with capital letters
@@ -60,15 +44,18 @@ def processing(df):
                         df.loc[row.Index, "Answer"] = df.loc[row.Index, "Answer"][1:]
                     else:
                         markForDrop = True
-                        break    
-
+                        break
+        
         if markForDrop is True:
             df.drop(row.Index, inplace=True)
+        
 
     df.drop_duplicates()
     return df
 
+infile = parse_args()
 mainframe = pd.read_csv(infile, dtype={"Question": object, "Answer": object})
-outframe = parallelize_dataframe(mainframe, processing)
+outframe = parallel_dataframe(mainframe, processing)
+outfile = outfile_name("processed_jokes")
 
-outframe.to_csv("processedTweets.csv", encoding='utf-8', index=False)
+outframe.to_csv(outfile, encoding='utf-8', index=False)

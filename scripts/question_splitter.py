@@ -3,31 +3,33 @@
 # where Question and Answer are the text before and after the delimiter
 
 # This makes separate rows for Q and A, and I'm not sure how to fix it.
-# A quick vim fix is :%s/,\n,/,/g
+# A quick vim fix is :%s/,\n,//g
 
 # This won't work if there's a single row without a delimiter.
 import sys
 import pandas as pd
-from time import strftime
+from jokeutils import *
 
 DELIMITER = '?'
 
-infile = ""
-if len(sys.argv) > 1:
-    infile = sys.argv[1]
-else:
-    print "Usage:   python question_splitter.py infile.csv"
+infile = parse_args()
 
-outfile = "split_questions"+ DELIMITER + "_at_" + strftime("%Y-%m-%d_%H:%M") + ".csv"
+outfile = outfile_name("splitjokes")
 
-indf = pd.read_csv(infile, dtype={"Joke": unicode})
-outdf = pd.DataFrame(columns=['Question', 'Answer', 'meta'])
+indf = pd.read_csv(infile, dtype={"Joke": object})
 
-for index, row in indf.iterrows():
-    joke_halves = row["Joke"].split(DELIMITER)
-    # Append the question and answer.
-    outdf = outdf.append([{"Question": joke_halves[0] + DELIMITER}, {"Answer": ' '.join(joke_halves[1:])}], ignore_index=True)
-    if index % 100 == 0:
-        print index
+
+def split_jokes(df):
+    newdf = pd.DataFrame(columns=['Question', 'Answer', 'meta'])
+    for i, row in enumerate(df.itertuples(),1):
+        if ('?' in row.Joke) is False:
+            df.drop(row.Index, inplace=True)
+        print(row.Index)
+    for i, row in enumerate(df.itertuples(),1):
+        joke_halves = row.Joke.split(DELIMITER)
+        newdf = newdf.append([{"Question": joke_halves[0] + DELIMITER}, {"Answer": ' '.join(joke_halves[1:])}])
+    return newdf
+
+outdf = parallel_dataframe(indf, split_jokes)
 
 outdf.to_csv(outfile, encoding='utf-8', index=False)

@@ -3,21 +3,18 @@
 
 import pandas as pd
 import sys
-from time import strftime
+from jokeutils import *
 
-INFILE = 'pull2.csv'
+infile = parse_args()
 DELETE_AFTER_MOVING = False
-df = pd.read_csv(INFILE)
+df = pd.read_csv(infile)
 
 cols = (["Question", "Answer", "meta"])
 newdf = pd.DataFrame(columns=cols)
 
+tag = "type:tradlightbulb"
 
-tag = "tag:nosubject"
-if len(sys.argv) > 1:
-    tag = sys.argv[1]
-
-outfile = tag + "_at_" + strftime("%Y-%m-%d_%H:%M") + ".csv"
+outfile = outfile_name(tag)
 
 
 insertion_row = 1
@@ -29,7 +26,7 @@ for idx, tags in enumerate(df["meta"]):
         insertion_row += 1
 
     if (idx % 5000 == 0):
-        print idx
+        print(idx)
 
-df.to_csv(INFILE, encoding='utf-8', index=False)
+df.to_csv(infile, encoding='utf-8', index=False)
 newdf.to_csv(outfile, encoding='utf-8', index=False)
